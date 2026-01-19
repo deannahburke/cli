@@ -21,6 +21,7 @@ import (
 	"github.com/fastly/cli/pkg/commands/domain"
 	"github.com/fastly/cli/pkg/commands/domainv1"
 	"github.com/fastly/cli/pkg/commands/healthcheck"
+	"github.com/fastly/cli/pkg/commands/imageoptimizerdefaults"
 	"github.com/fastly/cli/pkg/commands/install"
 	"github.com/fastly/cli/pkg/commands/ip"
 	"github.com/fastly/cli/pkg/commands/kvstore"
@@ -212,6 +213,9 @@ func Define( // nolint:revive // function-length
 	healthcheckDescribe := healthcheck.NewDescribeCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckList := healthcheck.NewListCommand(healthcheckCmdRoot.CmdClause, data)
 	healthcheckUpdate := healthcheck.NewUpdateCommand(healthcheckCmdRoot.CmdClause, data)
+	imageoptimizerdefaultsCmdRoot := imageoptimizerdefaults.NewRootCommand(app, data)
+	imageoptimizerdefaultsGet := imageoptimizerdefaults.NewGetCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
+	imageoptimizerdefaultsUpdate := imageoptimizerdefaults.NewUpdateCommand(imageoptimizerdefaultsCmdRoot.CmdClause, data)
 	installRoot := install.NewRootCommand(app, data)
 	ipCmdRoot := ip.NewRootCommand(app, data)
 	kvstoreCmdRoot := kvstore.NewRootCommand(app, data)
@@ -222,6 +226,7 @@ func Define( // nolint:revive // function-length
 	kvstoreentryCmdRoot := kvstoreentry.NewRootCommand(app, data)
 	kvstoreentryCreate := kvstoreentry.NewCreateCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryDelete := kvstoreentry.NewDeleteCommand(kvstoreentryCmdRoot.CmdClause, data)
+	kvstoreentryGet := kvstoreentry.NewGetCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryDescribe := kvstoreentry.NewDescribeCommand(kvstoreentryCmdRoot.CmdClause, data)
 	kvstoreentryList := kvstoreentry.NewListCommand(kvstoreentryCmdRoot.CmdClause, data)
 	logtailCmdRoot := logtail.NewRootCommand(app, data)
@@ -500,6 +505,7 @@ func Define( // nolint:revive // function-length
 	userList := user.NewListCommand(userCmdRoot.CmdClause, data)
 	userUpdate := user.NewUpdateCommand(userCmdRoot.CmdClause, data)
 	vclCmdRoot := vcl.NewRootCommand(app, data)
+	vclDescribe := vcl.NewDescribeCommand(vclCmdRoot.CmdClause, data)
 	vclConditionCmdRoot := condition.NewRootCommand(vclCmdRoot.CmdClause, data)
 	vclConditionCreate := condition.NewCreateCommand(vclConditionCmdRoot.CmdClause, data)
 	vclConditionDelete := condition.NewDeleteCommand(vclConditionCmdRoot.CmdClause, data)
@@ -628,6 +634,9 @@ func Define( // nolint:revive // function-length
 		healthcheckDescribe,
 		healthcheckList,
 		healthcheckUpdate,
+		imageoptimizerdefaultsCmdRoot,
+		imageoptimizerdefaultsGet,
+		imageoptimizerdefaultsUpdate,
 		installRoot,
 		ipCmdRoot,
 		kvstoreCreate,
@@ -636,6 +645,7 @@ func Define( // nolint:revive // function-length
 		kvstoreList,
 		kvstoreentryCreate,
 		kvstoreentryDelete,
+		kvstoreentryGet,
 		kvstoreentryDescribe,
 		kvstoreentryList,
 		logtailCmdRoot,
@@ -913,6 +923,7 @@ func Define( // nolint:revive // function-length
 		userList,
 		userUpdate,
 		vclCmdRoot,
+		vclDescribe,
 		vclConditionCmdRoot,
 		vclConditionCreate,
 		vclConditionDelete,

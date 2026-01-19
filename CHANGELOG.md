@@ -5,10 +5,116 @@
 ### Breaking:
 
 ### Enhancements:
+- feat(service-version): Add JSON support to service-version clone command ([#1550](https://github.com/fastly/cli/pull/1550))
 
 ### Bug fixes:
 
 ### Dependencies:
+
+## [v13.0.0](https://github.com/fastly/cli/releases/tag/v13.0.0) (2025-10-30)
+
+### Breaking:
+- breaking(tls-custom): correct 'tls-custom activation enable' command parameters to reflect expected input from API ([#1562](https://github.com/fastly/cli/pull/1562))
+- breaking(compute/build): Block version 1.91.0 of Rust as it produces broken WASM packages. ([#1571](https://github.com/fastly/cli/pull/1571))
+
+### Enhancements:
+- feat(compute/serve): set sig_iss and sig_key to allow client code to test Grip-Sig signing ([#1569](https://github.com/fastly/cli/pull/1569))
+- build(dockerfile-rust): add wasm tools to the rust docker container ([#1552](https://github.com/fastly/cli/pull/1552))
+- feat(env): add detection for workspace ID ([#1560](https://github.com/fastly/cli/pull/1560))
+
+### Bug fixes:
+- fix(compute): clarify fastly.toml error message when file not found ([#1556](https://github.com/fastly/cli/pull/1556))
+- fix(purge/key): ensures that single-key purges will work even if the key contains URL-unsafe characters ([#1566](https://github.com/fastly/cli/pull/1566))
+
+### Dependencies:
+- build(deps): `github.com/hashicorp/cap` from 0.10.0 to 0.11.0 ([#1546](https://github.com/fastly/cli/pull/1546))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.15.0 to 3.16.0 ([#1546](https://github.com/fastly/cli/pull/1546))
+- build(deps): `stefanzweifel/git-auto-commit-action` from 6 to 7 ([#1549](https://github.com/fastly/cli/pull/1549))
+- build(deps): `golang.org/x/sys` from 0.36.0 to 0.37.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/term` from 0.35.0 to 0.36.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/crypto` from 0.42.0 to 0.43.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/mod` from 0.28.0 to 0.29.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/net` from 0.44.0 to 0.45.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/oauth2` from 0.31.0 to 0.32.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `golang.org/x/text` from 0.29.0 to 0.30.0 ([#1548](https://github.com/fastly/cli/pull/1548))
+- build(deps): `actions/setup-node` from 5 to 6 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1559](https://github.com/fastly/cli/pull/1559))
+- build(deps): `github.com/klauspost/compress` from 1.18.0 to 1.18.1 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `golang.org/x/net` from 0.45.0 to 0.46.0 ([#1558](https://github.com/fastly/cli/pull/1558))
+- build(deps): `github.com/clipperhouse/uax29/v2` from 2.2.0 to 2.3.0 ([#1564](https://github.com/fastly/cli/pull/1564))
+- build(deps): `actions/upload-artifact` from 4 to 5 ([#1565](https://github.com/fastly/cli/pull/1565))
+- build(deps): `actions/download-artifact` from 5 to 6 ([#1565](https://github.com/fastly/cli/pull/1565))
+
+
+## [v12.1.0](https://github.com/fastly/cli/releases/tag/v12.1.0) (2025-09-30)
+
+### Breaking:
+
+### Enhancements:
+
+- feat(manifest): Enable loading Secret Store configuration through environment variables ([#1540](https://github.com/fastly/cli/pull/1540))
+- feat(products): Add enable/disable support for API Discovery ([#1543](https://github.com/fastly/go-fastly/pull/1543))
+
+### Bug fixes:
+
+### Dependencies:
+
+- build(deps): `golang.org/x/net` from 0.43.0 to 0.44.0 ([#1538](https://github.com/fastly/cli/pull/1538))
+- build(deps): `github.com/fastly/go-fastly/v11` from 11.3.1 to 12.0.0 ([#1541](https://github.com/fastly/cli/pull/1541))
+- build(deps): `github.com/mattn/go-runewidth` from 0.0.16 to 0.0.19 ([#1542](https://github.com/fastly/cli/pull/1542))
+- build(deps): `github.com/fastly/go-fastly/v11` from 11.3.1 to 12.0.0 ([#1541](https://github.com/fastly/cli/pull/1541))
+
+## [v12.0.0](https://github.com/fastly/cli/releases/tag/v12.0.0) (2025-09-10)
+
+### Breaking:
+
+- breaking(kvstoreentry): The 'describe' command now returns only key attributes (ie: generation, metadata) instead of a given key's value ([#1529](https://github.com/fastly/cli/pull/1529))
+
+### Enhancements:
+
+- feat(logging): Add support for 'CompressionCodec' and 'GzipLevel' attribute to the HTTPS endpoint.
+- feat(kvstoreentry): Add support for the 'prefix' parameter for List operations ([#1526](https://github.com/fastly/cli/pull/1526))
+- feat(kvstoreentry): Add support for the add, append, prepend, metadata, if_generation_match, and background_fetch 'create' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add support for the if_generation_match and metadata 'describe' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add support for the if_generation_match and force 'delete' command operations ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(kvstoreentry): Add the 'get' command operation which obtains the value of the item ([#1529](https://github.com/fastly/cli/pull/1529))
+- feat(logging/https): Add support for 'Period' attribute. ([#1537](https://github.com/fastly/cli/pull/1537))
+
+### Bug fixes:
+
+- fix(manifest): Ensure pushpin section is persisted during manifest file update ([#1535](https://github.com/fastly/cli/pull/1535))
+
+### Dependencies:
+
+- build(deps): `github.com/ulikunitz/xz` from 0.5.12 to 0.5.13 ([#1524](https://github.com/fastly/cli/pull/1524))
+- build(deps): `github.com/stretchr/testify` from 1.10.0 to 1.11.0 ([#1527](https://github.com/fastly/cli/pull/1527))
+- build(deps): `github.com/ulikunitz/xz` from 0.5.13 to 0.5.14 ([#1528](https://github.com/fastly/cli/pull/1528))
+- build(deps): `github.com/stretchr/testify` from 1.11.0 to 1.11.1 ([#1530](https://github.com/fastly/cli/pull/1530))
+- build(deps): `github.com/ulikunitz/xz` from 0.5.14 to 0.5.15 ([#1530](https://github.com/fastly/cli/pull/1530))
+- build(deps): `actions/setup-node` from 4 to 5 ([#1534](https://github.com/fastly/cli/pull/1534))
+- build(deps): `actions/setup-go` from 5 to 6 ([#1534](https://github.com/fastly/cli/pull/1534))
+- build(deps): `golang.org/x/sys` from 0.35.0 to 0.36.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/term` from 0.34.0 to 0.35.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `github.com/fastly/go-fastly/v11` from 11.3.0 to 11.3.1 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/crypto` from 0.41.0 to 0.42.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/mod` from 0.27.0 to 0.28.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/oauth2` from 0.30.0 to 0.31.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/sync` from 0.16.0 to 0.17.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+- build(deps): `golang.org/x/text` from 0.28.0 to 0.29.0 ([#1533](https://github.com/fastly/cli/pull/1533))
+
+## [v11.5.0](https://github.com/fastly/cli/releases/tag/v11.5.0) (2025-08-20)
+
+### Enhancements:
+
+- feat(vcl): Allow showing of generated VCL for a service version [#1498](https://github.com/fastly/cli/pull/1498)
+- feat(compute/serve): Add experimental "enable Pushpin" mode ([#1509](https://github.com/fastly/cli/pull/1509), [#1520](https://github.com/fastly/cli/pull/1520))
+- feat(object-storage): improve access-keys list output ([#1513](https://github.com/fastly/cli/pull/1513))
+- refactor(domainv1,tools): use updated go-fastly domainmanagement imports and types ([#1517](https://github.com/fastly/cli/pull/1517))
+- feat(imageoptimizerdefaults): Support for retrieving and updating Image Optimizer defaults for a given VCL service ([#1518](https://github.com/fastly/cli/pull/1518))
+
+### Dependencies:
+
+- build(deps): `github.com/fastly/go-fastly/v11` from 10 to 111 ([#14XX](https://github.com/fastly/cli/pull/14XX))
 - build(deps): `golang.org/x/sys` from 0.33.0 to 0.34.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/term` from 0.32.0 to 0.33.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/crypto` from 0.39.0 to 0.40.0 ([#1508](https://github.com/fastly/cli/pull/1508))
@@ -16,6 +122,16 @@
 - build(deps): `golang.org/x/net` from 0.41.0 to 0.42.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/sync` from 0.15.0 to 0.16.0 ([#1508](https://github.com/fastly/cli/pull/1508))
 - build(deps): `golang.org/x/text` from 0.26.0 to 0.27.0 ([#1508](https://github.com/fastly/cli/pull/1508))
+- build(deps): `github.com/coreos/go-oidc/v3` from 3.14.1 to 3.15.0 ([#1510](https://github.com/fastly/cli/pull/1510))
+- build(deps): `golang.org/x/sys` from 0.34.0 to 0.35.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/term` from 0.33.0 to 0.34.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `github.com/hashicorp/cap` from 0.9.0 to 0.10.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/crypto` from 0.40.0 to 0.41.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/mod` from 0.26.0 to 0.27.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/net` from 0.42.0 to 0.43.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `golang.org/x/text` from 0.27.0 to 0.28.0 ([#1516](https://github.com/fastly/cli/pull/1516))
+- build(deps): `actions/checkout` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
+- build(deps): `actions/download-artifact` from 4 to 5 ([#1515](https://github.com/fastly/cli/pull/1515))
 
 ## [v11.4.0](https://github.com/fastly/cli/releases/tag/v11.4.0) (2025-07-09)
 
@@ -24,9 +140,11 @@
 - feat(env): Add environment variable for extending the UserAgent string. ([#1502](https://github.com/fastly/cli/pull/1502))
 
 ### Bug fixes:
+
 - fix(sso): Ensure that OPTIONS requests sent by browsers do not break SSO authentication. ([#1496](https://github.com/fastly/cli/pull/1496))
 
 ### Dependencies:
+
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.3.0 to 10.4.0 ([#1499](https://github.com/fastly/cli/pull/1499))
 - build(deps): `stefanzweifel/git-auto-commit-action` from 5 to 6 ([#1497](https://github.com/fastly/cli/pull/1497))
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.4.0 to 10.5.0 ([#1501](https://github.com/fastly/cli/pull/1501))
@@ -37,6 +155,7 @@
 ## [v11.3.0](https://github.com/fastly/cli/releases/tag/v11.3.0) (2025-06-11)
 
 ### Enhancements:
+
 - feat(config-store): Allow for dynamic limits on Config Store entry lengths ([#1485](https://github.com/fastly/cli/pull/1485))
 - feat(backend): Add support for 'prefer IPv6' attribute. ([#1487](https://github.com/fastly/cli/pull/1487))
 - feat(tools/domain): add `suggest` and `status` domain tools endpoints ([#1482](https://github.com/fastly/cli/pull/1482))
@@ -44,10 +163,12 @@
 - feat(domains): add `description` to `domainv1` endpoints ([#1483](https://github.com/fastly/cli/pull/1483))
 
 ### Bug fixes:
+
 - fix(sso): Don't display the token after authentication. ([#1490](https://github.com/fastly/cli/pull/1490))
 - fix(service-version): Stop hiding the 'stage' and 'unstage' commands. ([#1492](https://github.com/fastly/cli/pull/1492))
 
 ### Dependencies:
+
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.0.1 to 10.1.0 ([#1476](https://github.com/fastly/cli/pull/1476))
 - build(deps): `github.com/fastly/go-fastly/v10` from 10.0.0 to 10.0.1 ([#1467](https://github.com/fastly/cli/pull/1467))
 - build(deps): `golang.org/x/net` from 0.37.0 to 0.39.0 ([#1467](https://github.com/fastly/cli/pull/1467))
@@ -88,6 +209,7 @@
 - fix(language/rust): Check for wasm32-wasi output from build process and inform user how to reconfigure their project. [#1458](https://github.com/fastly/cli/pull/1458)
 
 ### Dependencies:
+
 - dep(go.mod): upgrade go-fastly from v9 to v10 [#1448](https://github.com/fastly/cli/pull/1448)
 - build(deps): `golang.org/x/oauth2` from 0.28.0 to 0.29.0 ([#1451](https://github.com/fastly/cli/pull/1451))
 - build(deps): `golang.org/x/sys` from 0.31.0 to 0.32.0 ([#1454](https://github.com/fastly/cli/pull/1454))
@@ -116,10 +238,12 @@
 - breaking(compute/pack): use package name from manifest [#1025](https://github.com/fastly/cli/pull/1025)
 
 ### Enhancements:
+
 - fix(compute/init): Updates for renamed TypeScript default starter kit [#1405](https://github.com/fastly/cli/pull/1405)
 - feat(objectstorage/accesskeys): add support for access keys [#1428](https://github.com/fastly/cli/pull/1428)
 
 ### Dependencies
+
 - build(deps): upgrade Go from 1.22 to 1.23 ([#624](https://github.com/fastly/cli/pull/1414))
 - build(deps): `github.com/rogpeppe/go-internal` from 1.13.1 to 1.14.1 ([#1416](https://github.com/fastly/cli/pull/1416))
 - build(deps): `golang.org/x/crypto` from 0.33.0 to 0.35.0 ([#1417](https://github.com/fastly/cli/pull/1417))
@@ -830,7 +954,7 @@ This release introduces a breaking interface change to the `kv-store-entry` comm
 
 **Dependencies:**
 
-- build(deps): bump github.com/fastly/go-fastly/v8 from 8.0.0 to 8.0.1  [#926](https://github.com/fastly/cli/pull/926)
+- build(deps): bump github.com/fastly/go-fastly/v8 from 8.0.0 to 8.0.1 [#926](https://github.com/fastly/cli/pull/926)
 - build(deps): bump golang.org/x/term from 0.7.0 to 0.8.0 [#928](https://github.com/fastly/cli/pull/928)
 - build(deps): bump github.com/getsentry/sentry-go from 0.20.0 to 0.21.0 [#929](https://github.com/fastly/cli/pull/929)
 - build(deps): bump golang.org/x/crypto from 0.8.0 to 0.9.0 [#934](https://github.com/fastly/cli/pull/934)
@@ -2466,7 +2590,7 @@ a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
 
 **Bug fixes:**
 
-- Ensure compute deploy selects the most ideal version to clone/activate  [#50](https://github.com/fastly/cli/pull/50)
+- Ensure compute deploy selects the most ideal version to clone/activate [#50](https://github.com/fastly/cli/pull/50)
 
 ## [v0.7.0](https://github.com/fastly/cli/releases/tag/v0.7.0) (2020-04-28)
 
@@ -2556,4 +2680,4 @@ a single character (e.g. `--k` and `--v`). These were corrected to `--key` and
 
 Initial release :tada:
 
-\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
+\* _This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)_

@@ -2,13 +2,14 @@ package purge
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -135,7 +136,7 @@ func (c *RootCommand) Exec(_ io.Reader, out io.Writer) error {
 }
 
 func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
-	p, err := c.Globals.APIClient.PurgeAll(&fastly.PurgeAllInput{
+	p, err := c.Globals.APIClient.PurgeAll(context.TODO(), &fastly.PurgeAllInput{
 		ServiceID: serviceID,
 	})
 	if err != nil {
@@ -148,6 +149,34 @@ func (c *RootCommand) purgeAll(serviceID string, out io.Writer) error {
 	return nil
 }
 
+// purgeKey now uses the bulk purge endpoint to avoid serialization of the 'key' field values.
+// This serialization occurs due to the nature of the POST /service/{service_id}/purge/{surrogate_key}
+// endpoint storing the 'key' as part of the URL.
+func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
+	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
+		ServiceID: serviceID,
+		Keys:      []string{c.key},
+		Soft:      c.soft,
+	})
+	if err != nil {
+		c.Globals.ErrLog.AddWithContext(err, map[string]any{
+			"Service ID": serviceID,
+			"Key":        c.key,
+			"Soft":       c.soft,
+		})
+		return err
+	}
+	purgeID, ok := m[c.key]
+	if !ok {
+		return fmt.Errorf("no purge ID returned for key: %s", c.key)
+	}
+	// The bulk purge endpoint doesn't return a 'Status' field like the single-key
+	// endpoint did. To avoid a breaking change in the CLI output, we hardcode
+	// 'Status: ok' in the success message to maintain consistent behavior.
+	text.Success(out, "Purged key: %s (soft: %t). Status: ok, ID: %s", c.key, c.soft, purgeID)
+	return nil
+}
+
 func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 	keys, err := populateKeys(c.file, c.Globals.ErrLog)
 	if err != nil {
@@ -157,7 +186,11 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 		return err
 	}
 
-	m, err := c.Globals.APIClient.PurgeKeys(&fastly.PurgeKeysInput{
+	return c.purgeBulkKeys(serviceID, keys, out)
+}
+
+func (c *RootCommand) purgeBulkKeys(serviceID string, keys []string, out io.Writer) error {
+	m, err := c.Globals.APIClient.PurgeKeys(context.TODO(), &fastly.PurgeKeysInput{
 		ServiceID: serviceID,
 		Keys:      keys,
 		Soft:      c.soft,
@@ -187,26 +220,8 @@ func (c *RootCommand) purgeKeys(serviceID string, out io.Writer) error {
 	return nil
 }
 
-func (c *RootCommand) purgeKey(serviceID string, out io.Writer) error {
-	p, err := c.Globals.APIClient.PurgeKey(&fastly.PurgeKeyInput{
-		ServiceID: serviceID,
-		Key:       c.key,
-		Soft:      c.soft,
-	})
-	if err != nil {
-		c.Globals.ErrLog.AddWithContext(err, map[string]any{
-			"Service ID": serviceID,
-			"Key":        c.key,
-			"Soft":       c.soft,
-		})
-		return err
-	}
-	text.Success(out, "Purged key: %s (soft: %t). Status: %s, ID: %s", c.key, c.soft, fastly.ToValue(p.Status), fastly.ToValue(p.PurgeID))
-	return nil
-}
-
 func (c *RootCommand) purgeURL(out io.Writer) error {
-	p, err := c.Globals.APIClient.Purge(&fastly.PurgeInput{
+	p, err := c.Globals.APIClient.Purge(context.TODO(), &fastly.PurgeInput{
 		URL:  c.url,
 		Soft: c.soft,
 	})

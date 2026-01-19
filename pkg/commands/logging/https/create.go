@@ -1,14 +1,16 @@
 package https
 
 import (
+	"context"
+	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -26,15 +28,18 @@ type CreateCommand struct {
 
 	// Optional.
 	AutoClone         argparser.OptionalAutoClone
+	CompressionCodec  argparser.OptionalString
 	ContentType       argparser.OptionalString
 	EndpointName      argparser.OptionalString // Can't shadow argparser.Base method Name().
 	Format            argparser.OptionalString
 	FormatVersion     argparser.OptionalInt
+	GzipLevel         argparser.OptionalInt
 	HeaderName        argparser.OptionalString
 	HeaderValue       argparser.OptionalString
 	JSONFormat        argparser.OptionalString
 	MessageType       argparser.OptionalString
 	Method            argparser.OptionalString
+	Period            argparser.OptionalInt
 	Placement         argparser.OptionalString
 	ProcessingRegion  argparser.OptionalString
 	RequestMaxBytes   argparser.OptionalInt
@@ -71,18 +76,21 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("content-type", "Content type of the header sent with the request").Action(c.ContentType.Set).StringVar(&c.ContentType.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
 	c.CmdClause.Flag("header-name", "Name of the custom header sent with the request").Action(c.HeaderName.Set).StringVar(&c.HeaderName.Value)
 	c.CmdClause.Flag("header-value", "Value of the custom header sent with the request").Action(c.HeaderValue.Set).StringVar(&c.HeaderValue.Value)
 	c.CmdClause.Flag("json-format", "Enforces valid JSON formatting for log entries. Can be disabled 0, array of json (wraps JSON log batches in an array) 1, or newline delimited json (places each JSON log entry onto a new line in a batch) 2").Action(c.JSONFormat.Set).StringVar(&c.JSONFormat.Value)
-	common.MessageType(c.CmdClause, &c.MessageType)
+	logflags.MessageType(c.CmdClause, &c.MessageType)
 	c.CmdClause.Flag("method", "HTTP method used for request. Can be POST or PUT. Defaults to POST if not specified").Action(c.Method.Set).StringVar(&c.Method.Value)
-	common.Placement(c.CmdClause, &c.Placement)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "HTTPS")
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "HTTPS")
 	c.CmdClause.Flag("request-max-bytes", "Maximum size of log batch, if non-zero. Defaults to 100MB").Action(c.RequestMaxBytes.Set).IntVar(&c.RequestMaxBytes.Value)
 	c.CmdClause.Flag("request-max-entries", "Maximum number of logs to append to a batch, if non-zero. Defaults to 10k").Action(c.RequestMaxEntries.Set).IntVar(&c.RequestMaxEntries.Value)
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -95,10 +103,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Description: argparser.FlagServiceNameDesc,
 		Dst:         &c.ServiceName.Value,
 	})
-	common.TLSCACert(c.CmdClause, &c.TLSCACert)
-	common.TLSClientCert(c.CmdClause, &c.TLSClientCert)
-	common.TLSClientKey(c.CmdClause, &c.TLSClientKey)
-	common.TLSHostname(c.CmdClause, &c.TLSHostname)
+	logflags.TLSCACert(c.CmdClause, &c.TLSCACert)
+	logflags.TLSClientCert(c.CmdClause, &c.TLSClientCert)
+	logflags.TLSClientKey(c.CmdClause, &c.TLSClientKey)
+	logflags.TLSHostname(c.CmdClause, &c.TLSHostname)
 	c.CmdClause.Flag("url", "URL that log data will be sent to. Must use the https protocol").Action(c.URL.Set).StringVar(&c.URL.Value)
 	return &c
 }
@@ -106,6 +114,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 // ConstructInput transforms values parsed from CLI flags into an object to be used by the API client library.
 func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*fastly.CreateHTTPSInput, error) {
 	var input fastly.CreateHTTPSInput
+
+	// The following blocks enforces the mutual exclusivity of the
+	// CompressionCodec and GzipLevel flags.
+	if c.CompressionCodec.WasSet && c.GzipLevel.WasSet {
+		return nil, fmt.Errorf("error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag")
+	}
 
 	input.ServiceID = serviceID
 	if c.EndpointName.WasSet {
@@ -116,8 +130,15 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 	}
 	input.ServiceVersion = serviceVersion
 
+	if c.CompressionCodec.WasSet {
+		input.CompressionCodec = &c.CompressionCodec.Value
+	}
+
 	if c.ContentType.WasSet {
 		input.ContentType = &c.ContentType.Value
+	}
+	if c.GzipLevel.WasSet {
+		input.GzipLevel = &c.GzipLevel.Value
 	}
 
 	if c.HeaderName.WasSet {
@@ -172,6 +193,9 @@ func (c *CreateCommand) ConstructInput(serviceID string, serviceVersion int) (*f
 		input.ResponseCondition = &c.ResponseCondition.Value
 	}
 
+	if c.Period.WasSet {
+		input.Period = &c.Period.Value
+	}
 	if c.Placement.WasSet {
 		input.Placement = &c.Placement.Value
 	}
@@ -214,7 +238,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	d, err := c.Globals.APIClient.CreateHTTPS(input)
+	d, err := c.Globals.APIClient.CreateHTTPS(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -1,13 +1,14 @@
 package kvstoreentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -30,10 +31,12 @@ type DeleteCommand struct {
 	key argparser.OptionalString
 
 	// NOTE: Public fields can be set via `kv-store delete`.
-	DeleteAll bool
-	MaxErrors int
-	PoolSize  int
-	StoreID   string
+	DeleteAll         bool
+	Force             bool
+	IfGenerationMatch string
+	MaxErrors         int
+	PoolSize          int
+	StoreID           string
 }
 
 // NewDeleteCommand returns a usable command registered under the parent.
@@ -51,6 +54,8 @@ func NewDeleteCommand(parent argparser.Registerer, g *global.Data) *DeleteComman
 	// Optional.
 	c.CmdClause.Flag("all", "Delete all entries within the store").Short('a').BoolVar(&c.DeleteAll)
 	c.CmdClause.Flag("concurrency", "The thread pool size (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysPoolSize)).Short('r').IntVar(&c.PoolSize)
+	c.CmdClause.Flag("force", "Return a successful result from a 'delete' operation even if the specified key was not found").BoolVar(&c.Force)
+	c.CmdClause.Flag("if-generation-match", "Value which must match the current generation marker in an item for a delete operation to proceed").StringVar(&c.IfGenerationMatch)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	c.CmdClause.Flag("key", "Key name").Short('k').Action(c.key.Set).StringVar(&c.key.Value)
 	c.CmdClause.Flag("max-errors", "The number of errors to accept before stopping (ignored when set without the --all flag)").Default(strconv.Itoa(DeleteKeysMaxErrors)).Short('m').IntVar(&c.MaxErrors)
@@ -91,10 +96,20 @@ func (c *DeleteCommand) Exec(in io.Reader, out io.Writer) error {
 
 	input := fastly.DeleteKVStoreKeyInput{
 		StoreID: c.StoreID,
+		Force:   c.Force,
 		Key:     c.key.Value,
 	}
 
-	err := c.Globals.APIClient.DeleteKVStoreKey(&input)
+	// Validate generation value if provided.
+	if c.IfGenerationMatch != "" {
+		_, err := strconv.ParseUint(c.IfGenerationMatch, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid generation value: %s", c.IfGenerationMatch)
+		}
+		input.IfGenerationMatch, _ = strconv.ParseUint(c.IfGenerationMatch, 10, 64)
+	}
+
+	err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -135,7 +150,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 	}
 	spinner.Message(spinnerMessage + "...")
 
-	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(&fastly.ListKVStoreKeysInput{
+	p := c.Globals.APIClient.NewListKVStoreKeysPaginator(context.TODO(), &fastly.ListKVStoreKeysInput{
 		StoreID: c.StoreID,
 	})
 
@@ -172,7 +187,7 @@ func (c *DeleteCommand) DeleteAllKeys(out io.Writer) error {
 		go func() {
 			defer wg.Done()
 			for key := range keysCh {
-				err := c.Globals.APIClient.DeleteKVStoreKey(&fastly.DeleteKVStoreKeyInput{StoreID: c.StoreID, Key: key})
+				err := c.Globals.APIClient.DeleteKVStoreKey(context.TODO(), &fastly.DeleteKVStoreKeyInput{StoreID: c.StoreID, Key: key})
 				if err != nil {
 					select {
 					case errorsCh <- key:

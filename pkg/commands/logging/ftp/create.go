@@ -1,15 +1,16 @@
 package ftp
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -67,19 +68,19 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Dst:    &c.AutoClone.Value,
 	})
 	c.CmdClause.Flag("address", "An hostname or IPv4 address").Action(c.Address.Set).StringVar(&c.Address.Value)
-	common.CompressionCodec(c.CmdClause, &c.CompressionCodec)
+	logflags.CompressionCodec(c.CmdClause, &c.CompressionCodec)
 	c.CmdClause.Flag("name", "The name of the FTP logging object. Used as a primary key for API access").Short('n').Action(c.EndpointName.Set).StringVar(&c.EndpointName.Value)
-	common.Format(c.CmdClause, &c.Format)
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.GzipLevel(c.CmdClause, &c.GzipLevel)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.GzipLevel(c.CmdClause, &c.GzipLevel)
 	c.CmdClause.Flag("password", "The password for the server (for anonymous use an email address)").Action(c.Password.Set).StringVar(&c.Password.Value)
 	c.CmdClause.Flag("path", "The path to upload log files to. If the path ends in / then it is treated as a directory").Action(c.Path.Set).StringVar(&c.Path.Value)
-	common.Period(c.CmdClause, &c.Period)
-	common.Placement(c.CmdClause, &c.Placement)
+	logflags.Period(c.CmdClause, &c.Period)
+	logflags.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "FTP")
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
-	common.TimestampFormat(c.CmdClause, &c.TimestampFormat)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "FTP")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.TimestampFormat(c.CmdClause, &c.TimestampFormat)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -195,7 +196,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	d, err := c.Globals.APIClient.CreateFTP(input)
+	d, err := c.Globals.APIClient.CreateFTP(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

@@ -1,11 +1,13 @@
 package accesskeys
 
 import (
+	"context"
 	"errors"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v12/fastly"
+
+	"github.com/fastly/go-fastly/v12/fastly/objectstorage/accesskeys"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -38,10 +40,10 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 	// Required.
 	c.CmdClause.Flag("description", "Description of the access key").Required().StringVar(&c.description)
-	c.CmdClause.Flag("permission", "Permissions to be given to the access key").Required().StringVar(&c.permission)
+	c.CmdClause.Flag("permission", "Permissions to be given to the access key (read-write-admin, read-only-admin, read-write-objects, read-only-objects)").Required().StringVar(&c.permission)
 
 	// Optional.
-	c.CmdClause.Flag("bucket", "Bucket to be associated with the access key. Set flag multiple times to include multiple buckets").StringsVar(&c.buckets)
+	c.CmdClause.Flag("bucket", "Bucket to be associated with the access key. Set flag multiple times to include multiple buckets. If omitted, all buckets are associated").StringsVar(&c.buckets)
 	c.RegisterFlagBool(c.JSONFlag())
 
 	return &c
@@ -58,7 +60,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	accessKey, err := accesskeys.Create(fc, &accesskeys.CreateInput{
+	accessKey, err := accesskeys.Create(context.TODO(), fc, &accesskeys.CreateInput{
 		Description: &c.description,
 		Permission:  &c.permission,
 		Buckets:     &c.buckets,

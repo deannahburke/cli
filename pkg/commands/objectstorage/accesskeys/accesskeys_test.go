@@ -12,7 +12,7 @@ import (
 	sub "github.com/fastly/cli/pkg/commands/objectstorage/accesskeys"
 	fstfmt "github.com/fastly/cli/pkg/fmt"
 	"github.com/fastly/cli/pkg/testutil"
-	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v12/fastly/objectstorage/accesskeys"
 )
 
 const (
@@ -223,6 +223,7 @@ func TestAccessKeysList(t *testing.T) {
 				SecretKey:   "baz",
 				Description: "bizz",
 				Permission:  akPermission,
+				Buckets:     []string{"b1", "b2"},
 			},
 		},
 		Meta: accesskeys.MetaAccessKeys{},
@@ -303,8 +304,8 @@ Created (UTC): 2021-06-15 23:00
 
 var listAccessKeysString = strings.TrimSpace(`
 ID      Secret  Description  Permssion          Buckets  Created At
-foo     bar     bat          read-only-objects  []       0001-01-01 00:00:00 +0000 UTC
-foobar  baz     bizz         read-only-objects  []       0001-01-01 00:00:00 +0000 UTC
+foo     bar     bat          read-only-objects  all      0001-01-01 00:00:00 +0000 UTC
+foobar  baz     bizz         read-only-objects  [b1 b2]  0001-01-01 00:00:00 +0000 UTC
 `) + "\n"
 
 var zeroListAccessKeysString = strings.TrimSpace(`

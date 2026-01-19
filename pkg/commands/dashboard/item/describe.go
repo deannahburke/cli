@@ -1,13 +1,14 @@
 package item
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
+	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
@@ -46,12 +47,12 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	input := c.constructInput()
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(input)
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), input)
 	if err != nil {
 		return err
 	}
 
-	di, err := getItemFromDashboard(d, c.itemID)
+	di, err := getItemFromDashboard(context.TODO(), d, c.itemID)
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 			return err
 		}
 	} else {
-		common.PrintItem(out, 0, di)
+		printer.PrintItem(out, 0, di)
 	}
 
 	return nil
@@ -73,7 +74,7 @@ func (c *DescribeCommand) constructInput() *fastly.GetObservabilityCustomDashboa
 	return &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID}
 }
 
-func getItemFromDashboard(d *fastly.ObservabilityCustomDashboard, itemID string) (*fastly.DashboardItem, error) {
+func getItemFromDashboard(_ context.Context, d *fastly.ObservabilityCustomDashboard, itemID string) (*fastly.DashboardItem, error) {
 	for _, di := range d.Items {
 		if di.ID == itemID {
 			return &di, nil

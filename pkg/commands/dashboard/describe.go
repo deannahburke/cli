@@ -1,12 +1,13 @@
 package dashboard
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
+	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 )
@@ -40,7 +41,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	input := c.constructInput()
-	dashboard, err := c.Globals.APIClient.GetObservabilityCustomDashboard(input)
+	dashboard, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	common.PrintDashboard(out, 0, dashboard)
+	printer.PrintDashboard(out, 0, dashboard)
 	return nil
 }
 

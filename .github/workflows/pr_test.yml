@@ -1,12 +1,15 @@
-on: 
+name: Test
+
+on:
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
+      - labeled
+      - unlabeled
     branches:
       - main
-name: Test
 # Stop any in-flight CI jobs when a new commit is pushed.
 concurrency:
   group: ${{ github.ref_name }}
@@ -16,18 +19,18 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-    - uses: dangoslen/changelog-enforcer@v3
+      - uses: dangoslen/changelog-enforcer@v3
   config:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: "Generate static app config"
         run: make config
       - name: "Config Artifact"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: config-artifact-${{ github.sha }}
           path: pkg/config/config.toml
@@ -36,18 +39,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: 1.24.x
       - name: "Install dependencies"
         run: make mod-download
         shell: bash
       - name: "Config Artifact"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -55,7 +58,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.1
+          version: v2.4
           only-new-issues: true
   test:
     needs: [config]
@@ -68,9 +71,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: "Install Go"
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go-version }}
           # IMPORTANT: Disable caching to prevent cache restore errors later.
@@ -86,11 +89,11 @@ jobs:
         run: rustup show && rustup target list --installed --toolchain stable
         shell: bash
       - name: "Install Node"
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: "Config Artifact"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: config-artifact-${{ github.sha }}
       - name: "Move Config"
@@ -118,7 +121,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Build docker images
         run: |
           for dockerFile in Dockerfile*; do docker build -f $dockerFile . ; done
+  golangci-latest:
+    name: lint-latest (informational)
+    needs: [config]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Download config artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: config-artifact-${{ github.sha }}
+          path: pkg/config
+      - name: Verify embedded config exists
+        run: |
+          test -f pkg/config/config.toml || { echo "missing pkg/config/config.toml"; ls -la pkg/config; exit 1; }
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.24.x
+      - name: Run golangci-lint@latest
+        id: lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          only-new-issues: true
+        continue-on-error: true
+      - name: Report lint summary
+        run: |
+          if [ "${{ steps.lint.outcome }}" == "success" ]; then
+            echo "✅ golangci-lint@latest passed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ golangci-lint@latest failed (informational only)." >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,12 +1,13 @@
 package domainv1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
-	v1 "github.com/fastly/go-fastly/v10/fastly/domains/v1"
+	"github.com/fastly/go-fastly/v12/fastly"
+	"github.com/fastly/go-fastly/v12/fastly/domainmanagement/v1/domains"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/global"
@@ -48,7 +49,7 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 
 // Exec invokes the application logic for the command.
 func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
-	input := &v1.CreateInput{
+	input := &domains.CreateInput{
 		FQDN: &c.fqdn,
 	}
 	if c.serviceID != "" {
@@ -64,7 +65,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return errors.New("failed to convert interface to a fastly client")
 	}
 
-	d, err := v1.Create(fc, input)
+	d, err := domains.Create(context.TODO(), fc, input)
 	if err != nil {
 		c.Globals.ErrLog.AddWithContext(err, map[string]any{
 			"FQDN":       c.fqdn,

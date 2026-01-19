@@ -1,14 +1,15 @@
 package papertrail
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"4d63.com/optional"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/logging/common"
+	"github.com/fastly/cli/pkg/commands/logging/logflags"
 	"github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/manifest"
@@ -60,12 +61,12 @@ func NewCreateCommand(parent argparser.Registerer, g *global.Data) *CreateComman
 		Action: c.AutoClone.Set,
 		Dst:    &c.AutoClone.Value,
 	})
-	common.FormatVersion(c.CmdClause, &c.FormatVersion)
-	common.Format(c.CmdClause, &c.Format)
-	common.Placement(c.CmdClause, &c.Placement)
+	logflags.FormatVersion(c.CmdClause, &c.FormatVersion)
+	logflags.Format(c.CmdClause, &c.Format)
+	logflags.Placement(c.CmdClause, &c.Placement)
 	c.CmdClause.Flag("port", "The port number").Action(c.Port.Set).IntVar(&c.Port.Value)
-	common.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Papertrail")
-	common.ResponseCondition(c.CmdClause, &c.ResponseCondition)
+	logflags.ProcessingRegion(c.CmdClause, &c.ProcessingRegion, "Papertrail")
+	logflags.ResponseCondition(c.CmdClause, &c.ResponseCondition)
 	c.RegisterFlag(argparser.StringFlagOpts{
 		Name:        argparser.FlagServiceIDName,
 		Description: argparser.FlagServiceIDDesc,
@@ -148,7 +149,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return err
 	}
 
-	d, err := c.Globals.APIClient.CreatePapertrail(input)
+	d, err := c.Globals.APIClient.CreatePapertrail(context.TODO(), input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err

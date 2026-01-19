@@ -1,9 +1,10 @@
 package https
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -81,7 +82,7 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	o, err := c.Globals.APIClient.GetHTTPS(&c.Input)
+	o, err := c.Globals.APIClient.GetHTTPS(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -92,15 +93,18 @@ func (c *DescribeCommand) Exec(_ io.Reader, out io.Writer) error {
 	}
 
 	lines := text.Lines{
+		"Compression codec":      fastly.ToValue(o.CompressionCodec),
 		"Content type":           fastly.ToValue(o.ContentType),
 		"Format version":         fastly.ToValue(o.FormatVersion),
 		"Format":                 fastly.ToValue(o.Format),
+		"GZip level":             fastly.ToValue(o.GzipLevel),
 		"Header name":            fastly.ToValue(o.HeaderName),
 		"Header value":           fastly.ToValue(o.HeaderValue),
 		"JSON format":            fastly.ToValue(o.JSONFormat),
 		"Message type":           fastly.ToValue(o.MessageType),
 		"Method":                 fastly.ToValue(o.Method),
 		"Name":                   fastly.ToValue(o.Name),
+		"Period":                 fastly.ToValue(o.Period),
 		"Placement":              fastly.ToValue(o.Placement),
 		"Processing region":      fastly.ToValue(o.ProcessingRegion),
 		"Request max bytes":      fastly.ToValue(o.RequestMaxBytes),

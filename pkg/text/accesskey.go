@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/fastly/cli/pkg/time"
-	"github.com/fastly/go-fastly/v10/fastly/objectstorage/accesskeys"
+	"github.com/fastly/go-fastly/v12/fastly/objectstorage/accesskeys"
 )
 
 // PrintAccessKey displays an access key.
@@ -31,7 +31,15 @@ func PrintAccessKeyTbl(out io.Writer, accessKeys []accesskeys.AccessKey) {
 	for _, accessKey := range accessKeys {
 		// avoid gosec loop aliasing check :/
 		accessKey := accessKey
-		tbl.AddLine(accessKey.AccessKeyID, accessKey.SecretKey, accessKey.Description, accessKey.Permission, accessKey.Buckets, accessKey.CreatedAt)
+		var buckets string
+		if len(accessKey.Buckets) == 0 {
+			// No limitations on buckets
+			buckets = "all"
+		} else {
+			buckets = fmt.Sprintf("%v", accessKey.Buckets)
+		}
+
+		tbl.AddLine(accessKey.AccessKeyID, accessKey.SecretKey, accessKey.Description, accessKey.Permission, buckets, accessKey.CreatedAt)
 	}
 	tbl.Print()
 }

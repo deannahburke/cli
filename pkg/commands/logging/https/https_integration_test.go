@@ -2,13 +2,14 @@ package https_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/app"
 	"github.com/fastly/cli/pkg/global"
@@ -41,6 +42,14 @@ func TestHTTPSCreate(t *testing.T) {
 				CreateHTTPSFn:  createHTTPSError,
 			},
 			wantError: errTest.Error(),
+		},
+		{
+			args: args("logging https create --service-id 123 --version 1 --name log --url example.com --compression-codec zstd --gzip-level 9 --autoclone"),
+			api: mock.API{
+				ListVersionsFn: testutil.ListVersions,
+				CloneVersionFn: testutil.CloneVersionResult(4),
+			},
+			wantError: "error parsing arguments: the --compression-codec flag is mutually exclusive with the --gzip-level flag",
 		},
 	}
 	for testcaseIdx := range scenarios {
@@ -273,7 +282,7 @@ func TestHTTPSDelete(t *testing.T) {
 
 var errTest = errors.New("fixture error")
 
-func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSOK(_ context.Context, i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -283,11 +292,14 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(0),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
+		Period:            fastly.ToPointer(0),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -298,11 +310,11 @@ func createHTTPSOK(i *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func createHTTPSError(_ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
+func createHTTPSError(_ context.Context, _ *fastly.CreateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsOK(_ context.Context, i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return []*fastly.HTTPS{
 		{
 			ServiceID:         fastly.ToPointer(i.ServiceID),
@@ -313,11 +325,14 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			URL:               fastly.ToPointer("example.com"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			CompressionCodec:  fastly.ToPointer(""),
 			ContentType:       fastly.ToPointer("application/json"),
+			GzipLevel:         fastly.ToPointer(0),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
+			Period:            fastly.ToPointer(0),
 			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -336,11 +351,14 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 			URL:               fastly.ToPointer("analytics.example.com"),
 			RequestMaxEntries: fastly.ToPointer(2),
 			RequestMaxBytes:   fastly.ToPointer(2),
+			CompressionCodec:  fastly.ToPointer(""),
 			ContentType:       fastly.ToPointer("application/json"),
+			GzipLevel:         fastly.ToPointer(0),
 			HeaderName:        fastly.ToPointer("name"),
 			HeaderValue:       fastly.ToPointer("value"),
 			Method:            fastly.ToPointer(http.MethodGet),
 			JSONFormat:        fastly.ToPointer("1"),
+			Period:            fastly.ToPointer(0),
 			Placement:         fastly.ToPointer("none"),
 			TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 			TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -353,7 +371,7 @@ func listHTTPSsOK(i *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	}, nil
 }
 
-func listHTTPSsError(_ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
+func listHTTPSsError(_ context.Context, _ *fastly.ListHTTPSInput) ([]*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
@@ -375,7 +393,9 @@ Version: 1
 		Version: 1
 		Name: logs
 		URL: example.com
+		Compression codec: 
 		Content type: application/json
+		GZip level: 0
 		Header name: name
 		Header value: value
 		Method: GET
@@ -390,6 +410,7 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Period: 0
 		Placement: none
 		Processing region: us
 	HTTPS 2/2
@@ -397,7 +418,9 @@ Version: 1
 		Version: 1
 		Name: analytics
 		URL: analytics.example.com
+		Compression codec: 
 		Content type: application/json
+		GZip level: 0
 		Header name: name
 		Header value: value
 		Method: GET
@@ -412,11 +435,12 @@ Version: 1
 		Format: %h %l %u %t "%r" %>s %b
 		Format version: 2
 		Response condition: Prevent default logging
+		Period: 0
 		Placement: none
 		Processing region: us
 `) + "\n\n"
 
-func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSOK(_ context.Context, i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -426,11 +450,14 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(0),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
+		Period:            fastly.ToPointer(0),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -442,20 +469,23 @@ func getHTTPSOK(i *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func getHTTPSError(_ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
+func getHTTPSError(_ context.Context, _ *fastly.GetHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
 var describeHTTPSOutput = "\n" + strings.TrimSpace(`
+Compression codec: 
 Content type: application/json
 Format: %h %l %u %t "%r" %>s %b
 Format version: 2
+GZip level: 0
 Header name: name
 Header value: value
 JSON format: 1
 Message type: classic
 Method: GET
 Name: log
+Period: 0
 Placement: none
 Processing region: us
 Request max bytes: 2
@@ -470,7 +500,7 @@ URL: example.com
 Version: 1
 `) + "\n"
 
-func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSOK(_ context.Context, i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return &fastly.HTTPS{
 		ServiceID:         fastly.ToPointer(i.ServiceID),
 		ServiceVersion:    fastly.ToPointer(i.ServiceVersion),
@@ -480,11 +510,14 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 		URL:               fastly.ToPointer("example.com"),
 		RequestMaxEntries: fastly.ToPointer(2),
 		RequestMaxBytes:   fastly.ToPointer(2),
+		CompressionCodec:  fastly.ToPointer(""),
 		ContentType:       fastly.ToPointer("application/json"),
+		GzipLevel:         fastly.ToPointer(7),
 		HeaderName:        fastly.ToPointer("name"),
 		HeaderValue:       fastly.ToPointer("value"),
 		Method:            fastly.ToPointer(http.MethodGet),
 		JSONFormat:        fastly.ToPointer("1"),
+		Period:            fastly.ToPointer(0),
 		Placement:         fastly.ToPointer("none"),
 		TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 		TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -495,14 +528,14 @@ func updateHTTPSOK(i *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	}, nil
 }
 
-func updateHTTPSError(_ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
+func updateHTTPSError(_ context.Context, _ *fastly.UpdateHTTPSInput) (*fastly.HTTPS, error) {
 	return nil, errTest
 }
 
-func deleteHTTPSOK(_ *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSOK(_ context.Context, _ *fastly.DeleteHTTPSInput) error {
 	return nil
 }
 
-func deleteHTTPSError(_ *fastly.DeleteHTTPSInput) error {
+func deleteHTTPSError(_ context.Context, _ *fastly.DeleteHTTPSInput) error {
 	return errTest
 }

@@ -1,10 +1,11 @@
 package https
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -81,7 +82,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 	c.Input.ServiceID = serviceID
 	c.Input.ServiceVersion = fastly.ToValue(serviceVersion.Number)
 
-	o, err := c.Globals.APIClient.ListHTTPS(&c.Input)
+	o, err := c.Globals.APIClient.ListHTTPS(context.TODO(), &c.Input)
 	if err != nil {
 		c.Globals.ErrLog.Add(err)
 		return err
@@ -112,7 +113,9 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tVersion: %d\n", fastly.ToValue(https.ServiceVersion))
 		fmt.Fprintf(out, "\t\tName: %s\n", fastly.ToValue(https.Name))
 		fmt.Fprintf(out, "\t\tURL: %s\n", fastly.ToValue(https.URL))
+		fmt.Fprintf(out, "\t\tCompression codec: %s\n", fastly.ToValue(https.CompressionCodec))
 		fmt.Fprintf(out, "\t\tContent type: %s\n", fastly.ToValue(https.ContentType))
+		fmt.Fprintf(out, "\t\tGZip level: %d\n", fastly.ToValue(https.GzipLevel))
 		fmt.Fprintf(out, "\t\tHeader name: %s\n", fastly.ToValue(https.HeaderName))
 		fmt.Fprintf(out, "\t\tHeader value: %s\n", fastly.ToValue(https.HeaderValue))
 		fmt.Fprintf(out, "\t\tMethod: %s\n", fastly.ToValue(https.Method))
@@ -127,6 +130,7 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "\t\tFormat: %s\n", fastly.ToValue(https.Format))
 		fmt.Fprintf(out, "\t\tFormat version: %d\n", fastly.ToValue(https.FormatVersion))
 		fmt.Fprintf(out, "\t\tResponse condition: %s\n", fastly.ToValue(https.ResponseCondition))
+		fmt.Fprintf(out, "\t\tPeriod: %d\n", fastly.ToValue(https.Period))
 		fmt.Fprintf(out, "\t\tPlacement: %s\n", fastly.ToValue(https.Placement))
 		fmt.Fprintf(out, "\t\tProcessing region: %s\n", fastly.ToValue(https.ProcessingRegion))
 	}

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	"github.com/fastly/cli/pkg/commands/logging/https"
@@ -51,6 +51,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 				HeaderValue:       fastly.ToPointer("value"),
 				Method:            fastly.ToPointer(http.MethodGet),
 				JSONFormat:        fastly.ToPointer("1"),
+				Period:            fastly.ToPointer(5),
 				Placement:         fastly.ToPointer("none"),
 				TLSCACert:         fastly.ToPointer("-----BEGIN CERTIFICATE-----foo"),
 				TLSClientCert:     fastly.ToPointer("-----BEGIN CERTIFICATE-----bar"),
@@ -59,6 +60,7 @@ func TestCreateHTTPSInput(t *testing.T) {
 				MessageType:       fastly.ToPointer("classic"),
 				FormatVersion:     fastly.ToPointer(2),
 				ProcessingRegion:  fastly.ToPointer("eu"),
+				CompressionCodec:  fastly.ToPointer("zstd"),
 			},
 		},
 		{
@@ -131,6 +133,7 @@ func TestUpdateHTTPSInput(t *testing.T) {
 				HeaderValue:       fastly.ToPointer("new7"),
 				Method:            fastly.ToPointer("new8"),
 				JSONFormat:        fastly.ToPointer("new9"),
+				Period:            fastly.ToPointer(5),
 				Placement:         fastly.ToPointer("new10"),
 				TLSCACert:         fastly.ToPointer("new11"),
 				TLSClientCert:     fastly.ToPointer("new12"),
@@ -282,12 +285,14 @@ func createCommandAll() *https.CreateCommand {
 		Format:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: `%h %l %u %t "%r" %>s %b`},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 2},
 		ResponseCondition: argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "Prevent default logging"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 5},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "none"},
 		TLSCACert:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----foo"},
 		TLSHostname:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "example.com"},
 		TLSClientCert:     argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN CERTIFICATE-----bar"},
 		TLSClientKey:      argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "-----BEGIN PRIVATE KEY-----bar"},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 
@@ -369,6 +374,7 @@ func updateCommandAll() *https.UpdateCommand {
 		HeaderValue:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new7"},
 		Method:            argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new8"},
 		JSONFormat:        argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new9"},
+		Period:            argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 5},
 		Placement:         argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new10"},
 		RequestMaxEntries: argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		RequestMaxBytes:   argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
@@ -379,6 +385,7 @@ func updateCommandAll() *https.UpdateCommand {
 		MessageType:       argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "new15"},
 		FormatVersion:     argparser.OptionalInt{Optional: argparser.Optional{WasSet: true}, Value: 3},
 		ProcessingRegion:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "eu"},
+		CompressionCodec:  argparser.OptionalString{Optional: argparser.Optional{WasSet: true}, Value: "zstd"},
 	}
 }
 

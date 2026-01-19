@@ -1,10 +1,11 @@
 package kvstoreentry
 
 import (
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
 	fsterr "github.com/fastly/cli/pkg/errors"
@@ -18,6 +19,7 @@ type ListCommand struct {
 	argparser.JSONOutput
 
 	consistency string
+	prefix      string
 	Input       fastly.ListKVStoreKeysInput
 }
 
@@ -42,6 +44,7 @@ func NewListCommand(parent argparser.Registerer, g *global.Data) *ListCommand {
 
 	// Optional.
 	c.CmdClause.Flag("consistency", "Determines accuracy of results. i.e. 'eventual' uses caching to improve performance").Default("strong").HintOptions(ConsistencyOptions...).EnumVar(&c.consistency, ConsistencyOptions...)
+	c.CmdClause.Flag("prefix", "Restrict results to items whose keys match this prefix").StringVar(&c.prefix)
 	c.RegisterFlagBool(c.JSONFlag()) // --json
 	return &c
 }
@@ -82,8 +85,12 @@ func (c *ListCommand) Exec(_ io.Reader, out io.Writer) error {
 		c.Input.Consistency = fastly.ConsistencyStrong
 	}
 
+	if c.prefix != "" {
+		c.Input.Prefix = c.prefix
+	}
+
 	for {
-		o, err := c.Globals.APIClient.ListKVStoreKeys(&c.Input)
+		o, err := c.Globals.APIClient.ListKVStoreKeys(context.TODO(), &c.Input)
 		if err != nil {
 			c.Globals.ErrLog.Add(err)
 			if !c.JSONOutput.Enabled {

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
+
 	"github.com/fastly/kingpin"
 
 	"4d63.com/optional"
@@ -54,14 +55,20 @@ type Globals struct {
 
 // Base is stuff that should be included in every concrete command.
 type Base struct {
-	CmdClause *kingpin.CmdClause
-	Globals   *global.Data
+	CmdClause       *kingpin.CmdClause
+	Globals         *global.Data
+	SuppressVerbose bool
 }
 
 // Name implements the Command interface, and returns the FullCommand from the
 // kingpin.Command that's used to select which command to actually run.
 func (b Base) Name() string {
 	return b.CmdClause.FullCommand()
+}
+
+// SuppressesVerbose returns true if this command should suppress verbose output.
+func (b Base) SuppressesVerbose() bool {
+	return b.SuppressVerbose
 }
 
 // Optional models an optional type that consumers can use to assert whether the

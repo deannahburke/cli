@@ -13,6 +13,7 @@ type LocalServer struct {
 	ConfigStores   map[string]LocalConfigStore `toml:"config_stores,omitempty"`
 	KVStores       LocalKVStoreMap             `toml:"kv_stores,omitempty"`
 	SecretStores   LocalSecretStoreMap         `toml:"secret_stores,omitempty"`
+	Pushpin        *LocalPushpinMap            `toml:"pushpin,omitempty"`
 	ViceroyVersion string                      `toml:"viceroy_version,omitempty"`
 }
 
@@ -118,6 +119,7 @@ type SecretStoreArrayEntry struct {
 	Key  string `toml:"key"`
 	File string `toml:"file,omitempty"`
 	Data string `toml:"data,omitempty"`
+	Env  string `toml:"env,omitempty"`
 }
 
 // SecretStoreExternalFile represents the external key/value store,
@@ -190,6 +192,15 @@ func (m *LocalSecretStoreMap) UnmarshalTOML(v any) error {
 
 	*m = result
 	return nil
+}
+
+// LocalPushpinMap represents configuration of a local instance of Pushpin,
+// used for local experimentation and testing of handoff_fanout.
+type LocalPushpinMap struct {
+	EnablePushpin      *bool   `toml:"enable,omitempty"`
+	PushpinPath        *string `toml:"pushpin_path,omitempty"`
+	PushpinProxyPort   *uint16 `toml:"proxy_port,omitempty"`
+	PushpinPublishPort *uint16 `toml:"publish_port,omitempty"`
 }
 
 func decodeTOMLMap(m map[string]any, out any) error {

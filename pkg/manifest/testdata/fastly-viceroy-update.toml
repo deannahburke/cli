@@ -51,6 +51,12 @@ metadata = "This is some metadata"
 key = "second"
 file = "strings.json"
 
+[local_server.pushpin]
+enable = true
+pushpin_path = "path/to/pushpin"
+proxy_port = 7777
+publish_port = 6666
+
 [local_server.secret_stores]
 store_one = [
   { key = "first", data = "This is some secret data" },
@@ -65,3 +71,7 @@ data = "This is also some secret data"
 [[local_server.secret_stores.store_two]]
 key = "second"
 file = "/path/to/other/secret.json"
+
+[[local_server.secret_stores.store_two]]
+key = "fourth"
+env = "ENV_FOURTH"

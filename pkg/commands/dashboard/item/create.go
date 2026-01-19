@@ -1,12 +1,13 @@
 package item
 
 import (
+	"context"
 	"io"
 
-	"github.com/fastly/go-fastly/v10/fastly"
+	"github.com/fastly/go-fastly/v12/fastly"
 
 	"github.com/fastly/cli/pkg/argparser"
-	"github.com/fastly/cli/pkg/commands/dashboard/common"
+	"github.com/fastly/cli/pkg/commands/dashboard/printer"
 	fsterr "github.com/fastly/cli/pkg/errors"
 	"github.com/fastly/cli/pkg/global"
 	"github.com/fastly/cli/pkg/text"
@@ -62,13 +63,13 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 		return fsterr.ErrInvalidVerboseJSONCombo
 	}
 
-	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(&fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
+	d, err := c.Globals.APIClient.GetObservabilityCustomDashboard(context.TODO(), &fastly.GetObservabilityCustomDashboardInput{ID: &c.dashboardID})
 	if err != nil {
 		return err
 	}
 
 	input := c.constructInput(d)
-	d, err = c.Globals.APIClient.UpdateObservabilityCustomDashboard(input)
+	d, err = c.Globals.APIClient.UpdateObservabilityCustomDashboard(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func (c *CreateCommand) Exec(_ io.Reader, out io.Writer) error {
 
 	text.Success(out, `Added item to Custom Dashboard "%s" (id: %s)`, d.Name, d.ID)
 	// Summary isn't useful for a single dashboard, so print verbose by default
-	common.PrintDashboard(out, 0, d)
+	printer.PrintDashboard(out, 0, d)
 	return nil
 }
 
